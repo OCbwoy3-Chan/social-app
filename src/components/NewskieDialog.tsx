@@ -9,6 +9,7 @@ import {differenceInSeconds} from 'date-fns'
 import {HITSLOP_10} from '#/lib/constants'
 import {useGetTimeAgo} from '#/lib/hooks/useTimeAgo'
 import {sanitizeDisplayName} from '#/lib/strings/display-names'
+import {useAlterEgoProfileFields} from '#/state/crack/alter-ego'
 import {useModerationOpts} from '#/state/preferences/moderation-opts'
 import {useSession} from '#/state/session'
 import {atoms as a, useTheme, web} from '#/alf'
@@ -85,15 +86,18 @@ function DialogInner({
   const {currentAccount} = useSession()
   const timeAgo = useGetTimeAgo()
   const isMe = profile.did === currentAccount?.did
+  const displayProfile = useAlterEgoProfileFields(profile)
 
   const profileName = useMemo(() => {
-    if (!moderationOpts) return profile.displayName || profile.handle
-    const moderation = moderateProfile(profile, moderationOpts)
+    if (!moderationOpts) {
+      return displayProfile.displayName || displayProfile.handle
+    }
+    const moderation = moderateProfile(displayProfile, moderationOpts)
     return sanitizeDisplayName(
-      profile.displayName || profile.handle,
+      displayProfile.displayName || displayProfile.handle,
       moderation.ui('displayName'),
     )
-  }, [moderationOpts, profile])
+  }, [displayProfile, moderationOpts])
 
   const getJoinMessage = () => {
     const timeAgoString = timeAgo(createdAt, now, {format: 'long'})

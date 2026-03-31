@@ -30,6 +30,7 @@ import {Logo} from '#/view/icons/Logo'
 import {Logotype} from '#/view/icons/Logotype'
 import {atoms as a, useTheme} from '#/alf'
 import {Button, ButtonText} from '#/components/Button'
+import {AgField} from '#/components/crack/AgField'
 import {useDialogControl} from '#/components/Dialog'
 import {SwitchAccountDialog} from '#/components/dialogs/SwitchAccount'
 import {
@@ -280,15 +281,24 @@ export function BottomBar({navigation}: BottomTabBarProps) {
                         },
                       ],
                     ]}>
-                    <UserAvatar
-                      avatar={demoMode ? BOTTOM_BAR_AVI : profile?.avatar}
-                      size={iconWidth - (isAtMyProfile ? 3 : 2)}
-                      // See https://github.com/bluesky-social/social-app/pull/1801:
-                      usePlainRNImage={true}
-                      type={profile?.associated?.labeler ? 'labeler' : 'user'}
-                      live={live}
-                      hideLiveBadge
-                    />
+                    <AgField
+                      field="avatar"
+                      value={demoMode ? BOTTOM_BAR_AVI : profile?.avatar}
+                      did={currentAccount?.did || ''}>
+                      {avatar => (
+                        <UserAvatar
+                          avatar={avatar}
+                          size={iconWidth - (isAtMyProfile ? 3 : 2)}
+                          // See https://github.com/bluesky-social/social-app/pull/1801:
+                          usePlainRNImage={true}
+                          type={
+                            profile?.associated?.labeler ? 'labeler' : 'user'
+                          }
+                          live={live}
+                          hideLiveBadge
+                        />
+                      )}
+                    </AgField>
                   </View>
                 </View>
               }

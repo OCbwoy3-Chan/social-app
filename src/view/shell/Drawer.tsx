@@ -94,12 +94,19 @@ let DrawerProfileCard = ({
       </AgField>
       <View style={[a.gap_2xs]}>
         <View style={[a.flex_row, a.align_center, a.gap_xs, a.flex_1]}>
-          <Text
-            emoji
-            style={[a.font_bold, a.text_xl, a.mt_2xs, a.leading_tight]}
-            numberOfLines={1}>
-            {profile?.displayName || account.handle}
-          </Text>
+          <AgField
+            field="displayName"
+            value={profile?.displayName}
+            did={account.did}>
+            {displayName => (
+              <Text
+                emoji
+                style={[a.font_bold, a.text_xl, a.mt_2xs, a.leading_tight]}
+                numberOfLines={1}>
+                {displayName || account.handle}
+              </Text>
+            )}
+          </AgField>
           {profile && <ProfileBadges profile={profile} size="lg" />}
         </View>
         <Text

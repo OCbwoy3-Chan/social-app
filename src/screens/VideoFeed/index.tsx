@@ -62,6 +62,7 @@ import {
   usePostShadow,
 } from '#/state/cache/post-shadow'
 import {useProfileShadow} from '#/state/cache/profile-shadow'
+import {useAlterEgoProfileFields} from '#/state/crack/alter-ego'
 import {
   FeedFeedbackProvider,
   useFeedFeedback,
@@ -732,6 +733,7 @@ function Overlay({
   const seekingAnimationSV = useSharedValue(0)
 
   const profile = useProfileShadow(post.author)
+  const displayAuthor = useAlterEgoProfileFields(post.author)
   const [queueFollow, queueUnfollow] = useProfileFollowMutationQueue(
     profile,
     'ImmersiveVideo',
@@ -748,7 +750,7 @@ function Overlay({
     text: record?.text || '',
     facets: record?.facets,
   })
-  const handle = sanitizeHandle(post.author.handle, '@')
+  const handle = sanitizeHandle(displayAuthor.handle || post.author.handle, '@')
 
   const animatedStyle = useAnimatedStyle(() => ({
     opacity: 1 - seekingAnimationSV.get(),
@@ -812,7 +814,9 @@ function Overlay({
               <View style={[a.w_full, a.flex_row, a.align_center, a.gap_md]}>
                 <Link
                   label={l`View ${sanitizeDisplayName(
-                    post.author.displayName || post.author.handle,
+                    displayAuthor.displayName ||
+                      displayAuthor.handle ||
+                      post.author.handle,
                   )}'s profile`}
                   to={{
                     screen: 'Profile',
@@ -821,7 +825,7 @@ function Overlay({
                   style={[a.flex_1, a.flex_row, a.gap_md, a.align_center]}>
                   <UserAvatar
                     type="user"
-                    avatar={post.author.avatar}
+                    avatar={displayAuthor.avatar}
                     size={32}
                   />
                   <View style={[a.flex_1]}>
@@ -830,7 +834,9 @@ function Overlay({
                       emoji
                       numberOfLines={1}>
                       {sanitizeDisplayName(
-                        post.author.displayName || post.author.handle,
+                        displayAuthor.displayName ||
+                          displayAuthor.handle ||
+                          post.author.handle,
                       )}
                     </Text>
                     <Text
@@ -1046,6 +1052,7 @@ function PlayPauseTapArea({
   feedContext: string | undefined
   reqId: string | undefined
 }) {
+  const displayAuthor = useAlterEgoProfileFields(post.author)
   const {t: l} = useLingui()
   const doubleTapRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const playHaptic = useHaptics()
@@ -1106,7 +1113,7 @@ function PlayPauseTapArea({
       disabled={!player}
       aria-valuetext={isPlaying ? l`Video is playing` : l`Video is paused`}
       label={l`Video from ${sanitizeHandle(
-        post.author.handle,
+        displayAuthor.handle || post.author.handle,
         '@',
       )}. Tap to play or pause the video`}
       accessibilityHint={l`Double tap to like`}

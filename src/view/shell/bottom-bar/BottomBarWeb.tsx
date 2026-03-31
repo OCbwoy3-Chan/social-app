@@ -24,6 +24,7 @@ import {Logo} from '#/view/icons/Logo'
 import {Logotype} from '#/view/icons/Logotype'
 import {atoms as a, useTheme} from '#/alf'
 import {Button, ButtonText} from '#/components/Button'
+import {AgField} from '#/components/crack/AgField'
 import {useDialogControl} from '#/components/Dialog'
 import {SwitchAccountDialog} from '#/components/dialogs/SwitchAccount'
 import {
@@ -186,13 +187,22 @@ export function BottomBarWeb() {
                             {borderColor: t.atoms.text.color},
                           ],
                         ]}>
-                        <UserAvatar
-                          avatar={profile?.avatar}
-                          size={iconWidth - 3}
-                          type={
-                            profile?.associated?.labeler ? 'labeler' : 'user'
-                          }
-                        />
+                        <AgField
+                          field="avatar"
+                          value={profile?.avatar}
+                          did={currentAccount?.did || ''}>
+                          {avatar => (
+                            <UserAvatar
+                              avatar={avatar}
+                              size={iconWidth - 3}
+                              type={
+                                profile?.associated?.labeler
+                                  ? 'labeler'
+                                  : 'user'
+                              }
+                            />
+                          )}
+                        </AgField>
                       </View>
                     </View>
                   )}

@@ -206,7 +206,7 @@ function ProfileScreenLoaded({
   const displayProfile = useAlterEgoProfileFields(profile)
   useSetTitle(combinedDisplayName(displayProfile))
 
-  const description = profile.description ?? ''
+  const description = displayProfile.description ?? ''
   const hasDescription = description !== ''
   const [descriptionRT, isResolvingDescriptionRT] = useRichText(description)
   const showPlaceholder = isPlaceholderProfile || isResolvingDescriptionRT
@@ -618,7 +618,7 @@ function useRichText(text: string): [RichTextAPI, boolean] {
     async function resolveRTFacets() {
       // new each time
       // chatgpt
-      // eslint-disable-next-line @typescript-eslint/no-shadow
+
       const resolvedRT = new RichTextAPI({text})
       await resolvedRT.detectFacets(agent)
       if (!ignore) {
