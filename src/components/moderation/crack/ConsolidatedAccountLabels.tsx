@@ -1,3 +1,4 @@
+import {useMemo} from 'react'
 import {View} from 'react-native'
 import {type ComAtprotoLabelDefs} from '@atproto/api'
 import {msg} from '@lingui/core/macro'
@@ -33,6 +34,33 @@ export function ConsolidatedAccountLabels({
   const t = useTheme()
   const control = Dialog.useDialogControl()
   const hiddenCount = (labels?.length || causes.length) - visibleCount
+  const {outer, text} = useMemo(() => {
+    switch (size) {
+      case 'lg':
+        return {
+          outer: [
+            t.atoms.bg_contrast_25,
+            {
+              gap: 5,
+              paddingHorizontal: 5,
+              paddingVertical: 5,
+            },
+          ],
+          text: [a.text_sm],
+        }
+      case 'sm':
+      default:
+        return {
+          outer: [
+            {
+              paddingHorizontal: 3,
+              paddingVertical: 3,
+            },
+          ],
+          text: [a.text_xs],
+        }
+    }
+  }, [size, t])
 
   if (hiddenCount <= 0) {
     return null
@@ -53,14 +81,13 @@ export function ConsolidatedAccountLabels({
               a.flex_row,
               a.align_center,
               a.rounded_full,
-              !(size === 'sm') && t.atoms.bg_contrast_25,
-              size === 'sm' && {paddingHorizontal: 3, paddingVertical: 3},
-              size === 'lg' && {paddingHorizontal: 5, paddingVertical: 5},
+              outer,
               (hovered || pressed) && t.atoms.bg_contrast_50,
             ]}>
             <Text
+              emoji
               style={[
-                size === 'sm' ? a.text_xs : a.text_sm,
+                text,
                 a.font_semi_bold,
                 a.leading_tight,
                 t.atoms.text_contrast_medium,
@@ -74,7 +101,9 @@ export function ConsolidatedAccountLabels({
 
       <AccountLabelsDialog
         control={control}
-        labels={labels || causes.filter(isAccountLabelCause).map(cause => cause.label)}
+        labels={
+          labels || causes.filter(isAccountLabelCause).map(cause => cause.label)
+        }
       />
     </>
   )

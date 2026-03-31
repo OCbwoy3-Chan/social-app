@@ -1,4 +1,4 @@
-import {Fragment} from 'react'
+import {Fragment, useMemo} from 'react'
 import {type StyleProp, View, type ViewStyle} from 'react-native'
 import {type ComAtprotoLabelDefs, type ModerationUI} from '@atproto/api'
 
@@ -8,14 +8,12 @@ import {useCrackSettings} from '#/state/preferences'
 import {UserAvatar} from '#/view/com/util/UserAvatar'
 import {atoms as a, useTheme} from '#/alf'
 import {Button} from '#/components/Button'
+import * as Dialog from '#/components/Dialog'
+import {AccountLabelsDialog} from '#/components/moderation/crack/AccountLabelsDialog'
 import {
   ConsolidatedAccountLabels,
   isAccountLabelCause,
 } from '#/components/moderation/crack/ConsolidatedAccountLabels'
-import {
-  ModerationDetailsDialog,
-  useModerationDetailsDialogControl,
-} from '#/components/moderation/ModerationDetailsDialog'
 import * as Pills from '#/components/Pills'
 import {Text} from '#/components/Typography'
 
@@ -27,9 +25,40 @@ function LabelerConsolidatedPill({
   size?: Pills.CommonProps['size']
 }) {
   const t = useTheme()
-  const control = useModerationDetailsDialogControl()
+  const control = Dialog.useDialogControl()
   const desc = useModerationCauseDescription(causes[0])
   const count = causes.length
+  const labels = causes.filter(isAccountLabelCause).map(cause => cause.label)
+  const {outer, text, avatarSize} = useMemo(() => {
+    switch (size) {
+      case 'lg':
+        return {
+          outer: [
+            t.atoms.bg_contrast_25,
+            {
+              gap: 5,
+              paddingHorizontal: 5,
+              paddingVertical: 5,
+            },
+          ],
+          avatarSize: 16,
+          text: [a.text_sm],
+        }
+      case 'sm':
+      default:
+        return {
+          outer: [
+            {
+              gap: 3,
+              paddingHorizontal: 3,
+              paddingVertical: 3,
+            },
+          ],
+          avatarSize: 12,
+          text: [a.text_xs],
+        }
+    }
+  }, [size, t])
 
   return (
     <>
@@ -46,19 +75,20 @@ function LabelerConsolidatedPill({
               a.flex_row,
               a.align_center,
               a.rounded_full,
-              t.atoms.bg_contrast_25,
-              {padding: 3, gap: 3},
+              outer,
               (hovered || pressed) && t.atoms.bg_contrast_50,
             ]}>
             <UserAvatar
               avatar={desc.sourceAvi}
               type={desc.sourceType === 'labeler' ? 'labeler' : 'user'}
-              size={size === 'sm' ? 12 : 16}
+              size={avatarSize}
             />
             <Text
+              emoji
               style={[
-                size === 'sm' ? a.text_xs : a.text_sm,
+                text,
                 a.font_semi_bold,
+                a.leading_tight,
                 t.atoms.text_contrast_medium,
                 {paddingRight: 3},
               ]}>
@@ -67,7 +97,7 @@ function LabelerConsolidatedPill({
           </View>
         )}
       </Button>
-      <ModerationDetailsDialog control={control} modcause={causes[0]} />
+      <AccountLabelsDialog control={control} labels={labels} />
     </>
   )
 }
@@ -98,9 +128,7 @@ export function PostAlerts({
   }
 
   const accountLabelCauses = causes.filter(
-    (
-      cause,
-    ): cause is Extract<Pills.AppModerationCause, {type: 'label'}> =>
+    (cause): cause is Extract<Pills.AppModerationCause, {type: 'label'}> =>
       isAccountLabelCause(cause),
   )
   const seenAccountLabelerDids = new Set<string>()

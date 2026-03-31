@@ -25,7 +25,7 @@ import {TextSize_Stroke2_Corner0_Rounded as TextSize} from '#/components/icons/T
 import {TitleCase_Stroke2_Corner0_Rounded as Aa} from '#/components/icons/TitleCase'
 import * as Layout from '#/components/Layout'
 import {Text} from '#/components/Typography'
-import {IS_INTERNAL, IS_NATIVE} from '#/env'
+import {IS_NATIVE} from '#/env'
 import * as SettingsList from './components/SettingsList'
 import {CustomThemeSettings} from './crack/CustomThemeSettings'
 
@@ -170,7 +170,7 @@ export function AppearanceSettingsScreen({}: Props) {
                 onChange={onChangeFontScale}
               />
 
-              {IS_NATIVE && IS_INTERNAL && (
+              {IS_NATIVE && (
                 <>
                   <SettingsList.Divider />
                   <AppIconSettingsListItem />

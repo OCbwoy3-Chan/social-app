@@ -15,7 +15,7 @@ import {atoms as a, useTheme} from '#/alf'
 import * as Toggle from '#/components/forms/Toggle'
 import * as Layout from '#/components/Layout'
 import {Text} from '#/components/Typography'
-import {IS_ANDROID, IS_INTERNAL} from '#/env'
+import {IS_ANDROID} from '#/env'
 
 type Props = NativeStackScreenProps<CommonNavigatorParams, 'AppIconSettings'>
 export function AppIconSettingsScreen({}: Props) {
@@ -84,34 +84,29 @@ export function AppIconSettingsScreen({}: Props) {
           ))}
         </Group>
 
-        {IS_INTERNAL && (
-          <>
-            <Text
-              style={[
-                a.text_md,
-                a.mt_xl,
-                a.mb_sm,
-                a.font_semi_bold,
-                t.atoms.text_contrast_medium,
-              ]}>
-              <Trans>Bluesky+</Trans>
-            </Text>
-            <Group
-              label={_(msg`Bluesky+ icons`)}
-              value={currentAppIcon}
-              onChange={onSetAppIcon}>
-              {sets.core.map((icon, i) => (
-                <Row
-                  key={icon.id}
-                  icon={icon}
-                  isEnd={i === sets.core.length - 1}>
-                  <AppIcon icon={icon} key={icon.id} size={40} />
-                  <RowText>{icon.name}</RowText>
-                </Row>
-              ))}
-            </Group>
-          </>
-        )}
+        <>
+          <Text
+            style={[
+              a.text_md,
+              a.mt_xl,
+              a.mb_sm,
+              a.font_semi_bold,
+              t.atoms.text_contrast_medium,
+            ]}>
+            <Trans>Bluesky+</Trans>
+          </Text>
+          <Group
+            label={_(msg`Bluesky+ icons`)}
+            value={currentAppIcon}
+            onChange={onSetAppIcon}>
+            {sets.core.map((icon, i) => (
+              <Row key={icon.id} icon={icon} isEnd={i === sets.core.length - 1}>
+                <AppIcon icon={icon} key={icon.id} size={40} />
+                <RowText>{icon.name}</RowText>
+              </Row>
+            ))}
+          </Group>
+        </>
       </Layout.Content>
     </Layout.Screen>
   )
