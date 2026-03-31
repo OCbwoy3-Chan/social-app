@@ -839,20 +839,29 @@ export const ComposePost = ({
     try {
       logger.info(`composer: posting...`)
       postUri = (
-        await apilib.post(agent, queryClient, {
-          thread,
-          replyTo: replyTo?.uri,
-          onStateChange: setPublishingStage,
-          langs: currentLanguages,
-          atprotoRkeyGeneration: crackSettings.atprotoFrickery
-            ? thread.atprotoRkeyGeneration === 'prefix'
-              ? {
-                  type: 'prefix',
-                  prefix: thread.atprotoRkeyPrefix,
-                }
-              : {type: 'tid'}
-            : undefined,
-        })
+        await apilib.post(
+          agent,
+          queryClient,
+          {
+            thread,
+            replyTo: replyTo?.uri,
+            onStateChange: setPublishingStage,
+            langs: currentLanguages,
+            atprotoRkeyGeneration: crackSettings.atprotoFrickery
+              ? thread.atprotoRkeyGeneration === 'prefix'
+                ? {
+                    type: 'prefix',
+                    prefix: thread.atprotoRkeyPrefix,
+                  }
+                : {type: 'tid'}
+              : undefined,
+          },
+          {
+            highResolutionImages: ax.features.enabled(
+              ax.features.ImageUploadsHighResolution,
+            ),
+          },
+        )
       ).uris[0]
 
       /*

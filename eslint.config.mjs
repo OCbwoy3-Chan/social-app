@@ -1,33 +1,27 @@
 // @ts-check
 import js from '@eslint/js'
-import tsParser from '@typescript-eslint/parser'
-import bskyInternal from 'eslint-plugin-bsky-internal'
-import importPlugin from 'eslint-plugin-import'
-import lingui from 'eslint-plugin-lingui'
+import tseslint from 'typescript-eslint'
+import { defineConfig } from 'eslint/config';
 import react from 'eslint-plugin-react'
-import reactCompiler from 'eslint-plugin-react-compiler'
 import reactHooks from 'eslint-plugin-react-hooks'
 // @ts-expect-error no types
 import reactNative from 'eslint-plugin-react-native'
 // @ts-expect-error no types
 import reactNativeA11y from 'eslint-plugin-react-native-a11y'
 import simpleImportSort from 'eslint-plugin-simple-import-sort'
+import importX from 'eslint-plugin-import-x'
+import lingui from 'eslint-plugin-lingui'
+import reactCompiler from 'eslint-plugin-react-compiler'
+import bskyInternal from 'eslint-plugin-bsky-internal'
 import globals from 'globals'
-import tseslint from 'typescript-eslint'
+import tsParser from '@typescript-eslint/parser'
 
-function trimGlobalKeys(globalSet) {
-  return Object.fromEntries(
-    Object.entries(globalSet).map(([key, value]) => [key.trim(), value]),
-  )
-}
-
-export default tseslint.config(
+export default defineConfig(
   /**
    * Global ignores
    */
   {
     ignores: [
-      'node_modules/**',
       '**/__mocks__/*.ts',
       'ios/**',
       'android/**',
@@ -42,7 +36,6 @@ export default tseslint.config(
       'src/locale/locales/**/*.js',
       '*.e2e.ts',
       '*.e2e.tsx',
-      '.eslintrc.js',
       'eslint.config.mjs',
       '.jscodeshift/**',
     ],
@@ -52,10 +45,11 @@ export default tseslint.config(
    * Base configurations
    */
   js.configs.recommended,
-  ...tseslint.configs.recommendedTypeChecked,
-  importPlugin.flatConfigs.recommended,
-  importPlugin.flatConfigs.typescript,
-  importPlugin.flatConfigs['react-native'],
+  tseslint.configs.recommendedTypeChecked,
+  reactHooks.configs.flat.recommended,
+  importX.flatConfigs.recommended,
+  importX.flatConfigs.typescript,
+  importX.flatConfigs['react-native'],
 
   /**
    * Main configuration for all JS/TS/JSX/TSX files
@@ -64,10 +58,10 @@ export default tseslint.config(
     files: ['**/*.{js,jsx,ts,tsx}'],
     plugins: {
       react,
-      'react-hooks': reactHooks,
       'react-native': reactNative,
       'react-native-a11y': reactNativeA11y,
       'simple-import-sort': simpleImportSort,
+      // @ts-expect-error - not sure why
       lingui,
       'react-compiler': reactCompiler,
       'bsky-internal': bskyInternal,
@@ -75,13 +69,13 @@ export default tseslint.config(
     languageOptions: {
       ecmaVersion: 'latest',
       sourceType: 'module',
-      parser: tsParser,
       globals: {
-        ...trimGlobalKeys(globals.browser),
-        ...trimGlobalKeys(globals.node),
+        ...globals.browser,
+        ...globals.node,
       },
       parserOptions: {
-        project: true,
+        parser: tsParser,
+        projectService: true,
         tsconfigRootDir: import.meta.dirname,
         ecmaFeatures: {
           jsx: true,
@@ -133,13 +127,16 @@ export default tseslint.config(
        */
       ...react.configs.recommended.rules,
       ...react.configs['jsx-runtime'].rules,
-      ...reactHooks.configs.recommended.rules,
       'react/no-unescaped-entities': 'off',
       'react/prop-types': 'off',
       'react-native/no-inline-styles': 'off',
       ...reactNativeA11y.configs.all.rules,
-      'react-native-a11y/has-valid-accessibility-descriptors': 'off',
-      'react-compiler/react-compiler': 'off',
+      'react-compiler/react-compiler': 'warn',
+      // TODO: Fix these and set to error
+      'react-hooks/set-state-in-effect': 'warn',
+      'react-hooks/purity': 'warn',
+      'react-hooks/refs': 'warn',
+      'react-hooks/immutability': 'warn',
 
       /**
        * Import sorting
@@ -184,14 +181,14 @@ export default tseslint.config(
       /**
        * Import linting
        */
-      'import/no-duplicates': 'off',
-      'import/namespace': 'off',
-      'import/named': 'off',
-      'import/default': 'off',
-      'import/no-named-as-default': 'off',
-      'import/no-named-as-default-member': 'off',
-      'import/consistent-type-specifier-style': ['warn', 'prefer-inline'],
-      'import/no-unresolved': 'off',
+      'import-x/consistent-type-specifier-style': ['warn', 'prefer-inline'],
+      'import-x/no-unresolved': ['error', {
+        /*
+         * The `postinstall` hook runs `compile-if-needed` locally, but not in
+         * CI. For CI-sake, ignore this.
+         */
+        ignore: ['^#\/locale\/locales\/.+\/messages'],
+      }],
 
       /**
        * TypeScript-specific rules
@@ -210,14 +207,10 @@ export default tseslint.config(
         'warn',
         {prefer: 'type-imports', fixStyle: 'inline-type-imports'},
       ],
-      '@typescript-eslint/ban-types': 'off',
-      '@typescript-eslint/no-duplicate-enum-values': 'off',
-      '@typescript-eslint/no-var-requires': 'off',
       '@typescript-eslint/no-require-imports': 'off',
       '@typescript-eslint/no-unused-expressions': ['error', {
         allowTernary: true,
       }],
-      '@typescript-eslint/restrict-template-expressions': 'off',
       /**
        * Maintain previous behavior - these are stricter in typescript-eslint
        * v8 `warn` ones are probably worth fixing. `off` ones are a bit too
@@ -231,15 +224,15 @@ export default tseslint.config(
       '@typescript-eslint/unbound-method': 'off',
       '@typescript-eslint/no-unsafe-argument': 'off',
       '@typescript-eslint/no-unsafe-return': 'off',
-      '@typescript-eslint/no-unsafe-member-access': 'off',
-      '@typescript-eslint/no-unsafe-call': 'off',
-      '@typescript-eslint/no-floating-promises': 'off',
-      '@typescript-eslint/no-misused-promises': 'off',
-      '@typescript-eslint/require-await': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'warn',
+      '@typescript-eslint/no-unsafe-call': 'warn',
+      '@typescript-eslint/no-floating-promises': 'warn',
+      '@typescript-eslint/no-misused-promises': 'warn',
+      '@typescript-eslint/require-await': 'warn',
       '@typescript-eslint/no-unsafe-enum-comparison': 'warn',
-      '@typescript-eslint/no-unnecessary-type-assertion': 'off',
-      '@typescript-eslint/no-redundant-type-constituents': 'off',
-      '@typescript-eslint/no-duplicate-type-constituents': 'off',
+      '@typescript-eslint/no-unnecessary-type-assertion': 'warn',
+      '@typescript-eslint/no-redundant-type-constituents': 'warn',
+      '@typescript-eslint/no-duplicate-type-constituents': 'warn',
       '@typescript-eslint/no-base-to-string': 'warn',
       '@typescript-eslint/prefer-promise-reject-errors': 'warn',
       '@typescript-eslint/await-thenable': 'warn',
@@ -249,7 +242,7 @@ export default tseslint.config(
        */
       'no-empty-pattern': 'off',
       'no-async-promise-executor': 'off',
-      'no-constant-binary-expression': 'off',
+      'no-constant-binary-expression': 'warn',
       'prefer-const': 'off',
       'no-empty': 'off',
       'no-unsafe-optional-chaining': 'off',
@@ -272,7 +265,7 @@ export default tseslint.config(
     files: ['**/__tests__/**/*.{js,jsx,ts,tsx}', '**/*.test.{js,jsx,ts,tsx}'],
     languageOptions: {
       globals: {
-        ...trimGlobalKeys(globals.jest),
+        ...globals.jest,
       }
     },
   },

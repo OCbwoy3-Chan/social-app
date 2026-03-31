@@ -1,5 +1,5 @@
 import {useCallback, useMemo} from 'react'
-import {msg} from '@lingui/macro'
+import {msg} from '@lingui/core/macro'
 import {useLingui} from '@lingui/react'
 import {useFocusEffect} from '@react-navigation/native'
 
@@ -31,7 +31,7 @@ export function PostThreadScreen({route}: Props) {
       name === currentAccount?.handle ||
       name === currentAccount?.did
     if (isMe && activeAlterEgo) {
-      return _(msg`Post by @${activeAlterEgo.handle}`)
+      return _(msg`Post by @${activeAlterEgo.handle ?? ''}`)
     }
     return undefined
   }, [name, currentAccount, activeAlterEgo, _])

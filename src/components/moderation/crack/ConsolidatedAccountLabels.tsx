@@ -1,5 +1,5 @@
 import {View} from 'react-native'
-import {type ComAtprotoLabelDefs, type ModerationCause} from '@atproto/api'
+import {type ComAtprotoLabelDefs} from '@atproto/api'
 import {msg} from '@lingui/core/macro'
 import {useLingui} from '@lingui/react'
 
@@ -12,7 +12,9 @@ import {AccountLabelsDialog} from './AccountLabelsDialog'
 
 const MAX_VISIBLE_ACCOUNT_LABELS = 3
 
-export function isAccountLabelCause(cause: Pills.AppModerationCause) {
+export function isAccountLabelCause(
+  cause: Pills.AppModerationCause,
+): cause is Extract<Pills.AppModerationCause, {type: 'label'}> {
   return cause.type === 'label' && cause.label.uri.startsWith('did:')
 }
 
@@ -22,7 +24,7 @@ export function ConsolidatedAccountLabels({
   visibleCount = MAX_VISIBLE_ACCOUNT_LABELS,
   size = 'sm',
 }: {
-  causes: ModerationCause[]
+  causes: Pills.AppModerationCause[]
   labels?: ComAtprotoLabelDefs.Label[]
   visibleCount?: number
   size?: Pills.CommonProps['size']
@@ -72,7 +74,7 @@ export function ConsolidatedAccountLabels({
 
       <AccountLabelsDialog
         control={control}
-        labels={labels || causes.map(cause => cause.label)}
+        labels={labels || causes.filter(isAccountLabelCause).map(cause => cause.label)}
       />
     </>
   )

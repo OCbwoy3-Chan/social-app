@@ -299,8 +299,8 @@ function DraftMetadataTag({
     info: t.atoms.text_contrast_medium.color,
     warning: select(t.name, {
       light: '#C99A00',
-      dark: '#FFC404',
-      dim: '#FFC404',
+      dark: t.palette.yellow,
+      dim: t.palette.yellow,
     }),
   }[display]
 

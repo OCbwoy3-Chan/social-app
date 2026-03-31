@@ -150,9 +150,10 @@ export function Link({
         <AgField field="handle" value={profile.handle} did={profile.did}>
           {handleValue => (
             <InternalLink
+              testID={`profileCard-${profile.handle}-link`}
               label={l`View ${
                 displayNameValue || sanitizeHandle(handleValue)
-              }'s profile`}
+              }’s profile`}
               to={profileURL}
               style={[a.flex_col, style]}
               {...rest}>

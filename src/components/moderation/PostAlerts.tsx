@@ -1,10 +1,6 @@
 import {Fragment} from 'react'
 import {type StyleProp, View, type ViewStyle} from 'react-native'
-import {
-  type ComAtprotoLabelDefs,
-  type ModerationCause,
-  type ModerationUI,
-} from '@atproto/api'
+import {type ComAtprotoLabelDefs, type ModerationUI} from '@atproto/api'
 
 import {getModerationCauseKey, unique} from '#/lib/moderation'
 import {useModerationCauseDescription} from '#/lib/moderation/useModerationCauseDescription'
@@ -27,7 +23,7 @@ function LabelerConsolidatedPill({
   causes,
   size,
 }: {
-  causes: ModerationCause[]
+  causes: Pills.AppModerationCause[]
   size?: Pills.CommonProps['size']
 }) {
   const t = useTheme()
@@ -38,7 +34,7 @@ function LabelerConsolidatedPill({
   return (
     <>
       <Button
-        label={`View ${count} labels from ${desc.sourceName}`}
+        label={`View ${count} labels from ${desc.sourceDisplayName ?? desc.source ?? 'labeler'}`}
         onPress={e => {
           e.preventDefault()
           e.stopPropagation()
@@ -87,11 +83,11 @@ export function PostAlerts({
   size?: Pills.CommonProps['size']
   includeMute?: boolean
   style?: StyleProp<ViewStyle>
-  additionalCauses?: ModerationCause[] | Pills.AppModerationCause[]
+  additionalCauses?: Pills.AppModerationCause[]
   accountLabels?: ComAtprotoLabelDefs.Label[]
 }) {
   const {consolidateAccountLabels, consolidationMethod} = useCrackSettings()
-  const causes = [
+  const causes: Pills.AppModerationCause[] = [
     ...modui.alerts.filter(unique),
     ...modui.informs.filter(unique),
     ...(additionalCauses ?? []),
@@ -101,8 +97,11 @@ export function PostAlerts({
     return null
   }
 
-  const accountLabelCauses = causes.filter((cause): cause is ModerationCause =>
-    isAccountLabelCause(cause),
+  const accountLabelCauses = causes.filter(
+    (
+      cause,
+    ): cause is Extract<Pills.AppModerationCause, {type: 'label'}> =>
+      isAccountLabelCause(cause),
   )
   const seenAccountLabelerDids = new Set<string>()
   const uniqueAccountLabelCauses = accountLabelCauses.filter(cause => {
@@ -122,7 +121,10 @@ export function PostAlerts({
   if (consolidateAccountLabels) {
     if (consolidationMethod === 'by_labeler') {
       const otherCauses = causes.filter(c => !isAccountLabelCause(c))
-      const labelsByLabeler = new Map<string, ModerationCause[]>()
+      const labelsByLabeler = new Map<
+        string,
+        Extract<Pills.AppModerationCause, {type: 'label'}>[]
+      >()
 
       for (const cause of accountLabelCauses) {
         const key = cause.label.src
@@ -222,7 +224,6 @@ export function PostAlerts({
                         cause={cause}
                         size={size}
                         noBg={size === 'sm'}
-                        textOverride=""
                       />
                       {shouldRenderOverflowAfterPreview ? (
                         <ConsolidatedAccountLabels

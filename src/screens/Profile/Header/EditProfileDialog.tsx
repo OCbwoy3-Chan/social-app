@@ -5,7 +5,12 @@ import {msg} from '@lingui/core/macro'
 import {useLingui} from '@lingui/react'
 import {Plural, Trans} from '@lingui/react/macro'
 
-import {HITSLOP_10, urls} from '#/lib/constants'
+import {
+  HITSLOP_10,
+  MAX_DESCRIPTION,
+  MAX_DISPLAY_NAME,
+  urls,
+} from '#/lib/constants'
 import {cleanError} from '#/lib/strings/errors'
 import {isOverMaxGraphemeCount} from '#/lib/strings/helpers'
 import {isValidWebsiteFormat} from '#/lib/strings/website'
@@ -30,11 +35,8 @@ import * as Toast from '#/components/Toast'
 import {Text} from '#/components/Typography'
 import {useSimpleVerificationState} from '#/components/verification'
 
-const DISPLAY_NAME_MAX_GRAPHEMES = 64
 const PRONOUNS_MAX_GRAPHEMES = 20
 const WEBSITE_MAX_GRAPHEMES = 28
-const DESCRIPTION_MAX_GRAPHEMES = 256
-
 export function EditProfileDialog({
   profile,
   control,
@@ -234,7 +236,7 @@ function DialogInner({
 
   const displayNameTooLong = isOverMaxGraphemeCount({
     text: displayName,
-    maxCount: DISPLAY_NAME_MAX_GRAPHEMES,
+    maxCount: MAX_DISPLAY_NAME,
   })
   const pronounsTooLong = isOverMaxGraphemeCount({
     text: pronouns,
@@ -247,7 +249,7 @@ function DialogInner({
   const websiteInvalidFormat = !isValidWebsiteFormat(website)
   const descriptionTooLong = isOverMaxGraphemeCount({
     text: description,
-    maxCount: DESCRIPTION_MAX_GRAPHEMES,
+    maxCount: MAX_DESCRIPTION,
   })
 
   const cancelButton = useCallback(
@@ -376,8 +378,8 @@ function DialogInner({
                 {color: t.palette.negative_400},
               ]}>
               <Plural
-                value={DISPLAY_NAME_MAX_GRAPHEMES}
-                other="The maximum number of characters is #."
+                value={MAX_DISPLAY_NAME}
+                other="Display name is too long. The maximum number of characters is #."
               />
             </Text>
           )}
@@ -427,8 +429,8 @@ function DialogInner({
                 {color: t.palette.negative_400},
               ]}>
               <Plural
-                value={DESCRIPTION_MAX_GRAPHEMES}
-                other="The maximum number of characters is #."
+                value={MAX_DESCRIPTION}
+                other="Description is too long. The maximum number of characters is #."
               />
             </Text>
           )}

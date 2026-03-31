@@ -1,7 +1,8 @@
 import {useEffect, useMemo, useRef, useState} from 'react'
 import {Pressable, useWindowDimensions, View} from 'react-native'
-import {msg, Plural, Trans} from '@lingui/macro'
+import {msg} from '@lingui/core/macro'
 import {useLingui} from '@lingui/react'
+import {Plural, Trans} from '@lingui/react/macro'
 
 import {uploadBlob} from '#/lib/api'
 import {HITSLOP_10} from '#/lib/constants'
