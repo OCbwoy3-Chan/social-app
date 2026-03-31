@@ -88,8 +88,9 @@ Advanced:
 
 PRs merged in early:
 
-All tested and works on my iPhone 15 running the iOS 26.4 Developer Beta, exept
-for:
+- Soon enough
+
+Works on my iPhone 15, iOS 26.4
 
 What doesn't work:
 
