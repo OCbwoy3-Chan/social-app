@@ -3,6 +3,10 @@ import {useMemo} from 'react'
 import {usePreferencesQuery} from '#/state/queries/preferences'
 import {useCurrentAccountProfile} from '#/state/queries/useCurrentAccountProfile'
 import {useSession} from '#/state/session'
+import {
+  useCustomVerificationCancellations,
+  useCustomVerificationCancellersEnabled,
+} from '#/state/verification/crack/custom-cancellers'
 import {useVerificationState} from '#/state/verification/custom-verification'
 import {useCustomVerificationTrustedList} from '#/state/verification/custom-verifiers'
 import type * as bsky from '#/types/bsky'
@@ -15,16 +19,12 @@ export type FullVerificationState = {
     isViewer: boolean
     showBadge: boolean
   }
-  viewer:
-    | {
-        role: 'default'
-        isVerified: boolean
-      }
-    | {
-        role: 'verifier'
-        isVerified: boolean
-        hasIssuedVerification: boolean
-      }
+  viewer: {
+    role: 'default' | 'verifier'
+    isVerified: boolean
+    hasIssuedVerification: boolean
+    hasIssuedCancellation: boolean
+  }
 }
 
 export function useFullVerificationState({
@@ -38,6 +38,8 @@ export function useFullVerificationState({
   const viewerState = useSimpleVerificationState({
     profile: currentAccountProfile,
   })
+  const cancellersEnabled = useCustomVerificationCancellersEnabled()
+  const {hasCancellation} = useCustomVerificationCancellations()
   const {state: verificationState} = useVerificationState(profile)
 
   return useMemo(() => {
@@ -52,6 +54,14 @@ export function useFullVerificationState({
         profileState.role === 'default' &&
         verifications.find(v => v.issuer === currentAccount?.did),
     )
+    const hasIssuedCancellation = Boolean(
+      cancellersEnabled &&
+        currentAccount?.did &&
+        hasCancellation({
+          issuer: currentAccount.did,
+          subject: profile.did,
+        }),
+    )
 
     return {
       profile: {
@@ -60,19 +70,22 @@ export function useFullVerificationState({
         isViewer: profile.did === currentAccount?.did,
         showBadge: profileState.showBadge,
       },
-      viewer:
-        viewerState.role === 'verifier'
-          ? {
-              role: 'verifier',
-              isVerified: viewerState.isVerified,
-              hasIssuedVerification,
-            }
-          : {
-              role: 'default',
-              isVerified: viewerState.isVerified,
-            },
+      viewer: {
+        role: viewerState.role,
+        isVerified: viewerState.isVerified,
+        hasIssuedVerification,
+        hasIssuedCancellation,
+      },
     }
-  }, [profile, currentAccount, profileState, viewerState, verificationState])
+  }, [
+    profile,
+    currentAccount,
+    profileState,
+    viewerState,
+    verificationState,
+    hasCancellation,
+    cancellersEnabled,
+  ])
 }
 
 export type SimpleVerificationState = {

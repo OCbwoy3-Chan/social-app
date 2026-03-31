@@ -79,6 +79,9 @@ export function CrackSettingsScreen({}: Props) {
       case 'openVerificationSettings':
         navigation.navigate('CrackVerificationSettings')
         break
+      case 'openTrustedCancellersSettings':
+        navigation.navigate('CrackTrustedCancellersSettings')
+        break
       case 'openAlterEgo':
         navigation.navigate('CrackAlterEgoSettings')
         break
@@ -210,6 +213,7 @@ function getItemIcon(
   if (item.type === 'toggle') {
     if (item.key === 'kawaiiMode') return SparkleIcon
     if (item.key === 'customVerificationsEnabled') return VerifierCheckIcon
+    if (item.key === 'trustedCancellersEnabled') return ShieldIcon
     if (item.key === 'hijackHideLabels') return CircleXIcon
     if (item.key === 'uncapLabelerLimit') return ShieldIcon
     if (item.key === 'removeAppLabelers') return ShieldIcon
@@ -218,6 +222,7 @@ function getItemIcon(
   }
   if (item.type === 'button') {
     if (item.id === 'openVerificationSettings') return VerifierCheckIcon
+    if (item.id === 'openTrustedCancellersSettings') return ShieldIcon
     if (item.id === 'openAlterEgo') return SparkleIcon
     return WindowIcon
   }

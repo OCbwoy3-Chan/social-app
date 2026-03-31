@@ -9,6 +9,7 @@ export const crackSettingsDefaults: CrackSettings = {
   kawaiiMode: false,
   showWelcomeModal: true,
   customVerificationsEnabled: false,
+  trustedCancellersEnabled: false,
   uncapLabelerLimit: false,
   removeAppLabelers: false,
   hijackHideLabels: false,
@@ -119,7 +120,14 @@ export const crackSettingsSections: CrackSettingsSection[] = [
         type: 'button',
         id: 'openVerificationSettings',
         label: 'Verification settings',
-        description: 'Manage trusted verifiers and negations.',
+        description: 'Manage trusted verifiers, cancellers, and negations.',
+        buttonLabel: 'Manage',
+      },
+      {
+        type: 'button',
+        id: 'openTrustedCancellersSettings',
+        label: 'Trusted cancellers',
+        description: 'Manage trusted cancellers and cancelled users.',
         buttonLabel: 'Manage',
       },
       {

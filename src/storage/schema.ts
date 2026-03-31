@@ -72,6 +72,11 @@ export type Account = {
   searchTermHistory?: string[]
   searchAccountHistory?: string[]
   trustedVerifiers?: string[]
+  trustedCancellers?: string[]
+  verificationCancellations?: Array<{
+    issuer: string
+    subject: string
+  }>
   settingsHelpSeen?: boolean
 
   /**

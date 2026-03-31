@@ -17,6 +17,7 @@ export const router = new Router<AllNavigatableRoutes>({
   CrackSettings: '/settings/tv',
   CrackAlterEgoSettings: '/settings/crack/alter-ego',
   CrackVerificationSettings: '/settings/crack/verifications',
+  CrackTrustedCancellersSettings: '/settings/crack/cancellers',
   Lists: '/lists',
   // moderation
   Moderation: '/moderation',

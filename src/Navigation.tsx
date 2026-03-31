@@ -135,7 +135,10 @@ import {VideoFeed} from '#/screens/VideoFeed'
 import {type Theme, useTheme} from '#/alf'
 import {CrackAlterEgoSettingsScreen} from '#/components/CrackComponents/CrackAlterEgoSettingsScreen'
 import {CrackSettingsScreen} from '#/components/CrackComponents/CrackSettingsScreen'
-import {CrackVerificationSettingsScreen} from '#/components/CrackComponents/CrackVerificationSettingsScreen'
+import {
+  CrackTrustedCancellersSettingsScreen,
+  CrackVerificationSettingsScreen,
+} from '#/components/CrackComponents/CrackVerificationSettingsScreen'
 import {
   EmailDialogScreenID,
   useEmailDialogControl,
@@ -233,6 +236,11 @@ function commonScreens(Stack: typeof Flat, unreadCountLabel?: string) {
         name="CrackVerificationSettings"
         getComponent={() => CrackVerificationSettingsScreen}
         options={{title: title(msg`Verification settings`), requireAuth: true}}
+      />
+      <Stack.Screen
+        name="CrackTrustedCancellersSettings"
+        getComponent={() => CrackTrustedCancellersSettingsScreen}
+        options={{title: title(msg`Trusted cancellers`), requireAuth: true}}
       />
       <Stack.Screen
         name="LanguageSettings"

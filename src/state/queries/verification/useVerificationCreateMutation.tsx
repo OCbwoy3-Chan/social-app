@@ -6,6 +6,11 @@ import {updateProfileShadow} from '#/state/cache/profile-shadow'
 import {useUpdateProfileVerificationCache} from '#/state/queries/verification/useUpdateProfileVerificationCache'
 import {useAgent, useSession} from '#/state/session'
 import {
+  useCustomVerificationCancellations,
+  useCustomVerificationCancellersEnabled,
+  useCustomVerificationTrustedCancellers,
+} from '#/state/verification/crack/custom-cancellers'
+import {
   applyOptimisticCustomVerificationState,
   clearCustomVerificationCacheForProfile,
 } from '#/state/verification/custom-verification'
@@ -62,9 +67,15 @@ export function useVerificationCreateMutation() {
   const qc = useQueryClient() // <-- ocbwoy3
   const {currentAccount} = useSession()
   const customVerificationEnabled = useCustomVerificationEnabled()
+  const cancellersEnabled = useCustomVerificationCancellersEnabled()
   const trusted = useCustomVerificationTrusted(
     customVerificationEnabled ? currentAccount?.did : undefined,
   )
+  const trustedCancellers = useCustomVerificationTrustedCancellers(
+    cancellersEnabled ? currentAccount?.did : undefined,
+  )
+  const {removeCancellation, hasCancellation} =
+    useCustomVerificationCancellations()
   const updateProfileVerificationCache = useUpdateProfileVerificationCache()
 
   return useMutation({
@@ -88,6 +99,16 @@ export function useVerificationCreateMutation() {
     async onSuccess({uri, createdAt}, {profile}) {
       ax.metric('verification:create', {})
       if (currentAccount) {
+        const existingCancellation = hasCancellation({
+          issuer: currentAccount.did,
+          subject: profile.did,
+        })
+        if (existingCancellation) {
+          await removeCancellation({
+            issuer: currentAccount.did,
+            subject: profile.did,
+          })
+        }
         // <-- ocbwoy3 (entire if block)
         const optimisticVerification = buildOptimisticVerificationState_ocbwoy3(
           {
@@ -105,6 +126,8 @@ export function useVerificationCreateMutation() {
         applyOptimisticCustomVerificationState({
           profile,
           trusted,
+          trustedCancellers,
+          cancellations: undefined,
           verification: {
             issuer: currentAccount.did,
             isValid: true,
@@ -115,7 +138,6 @@ export function useVerificationCreateMutation() {
       } else {
         clearCustomVerificationCacheForProfile(profile.did)
       }
-      // eslint-disable-next-line no-void
       void (async () => {
         // <-- ocbwoy3
         let confirmed = false

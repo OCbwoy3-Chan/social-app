@@ -22,6 +22,12 @@ import {
   useProfileMuteMutationQueue,
 } from '#/state/queries/profile'
 import {useSession} from '#/state/session'
+import {
+  useCustomVerificationCancellations,
+  useCustomVerificationCancellersEnabled,
+  useCustomVerificationTrustedCancellerList,
+  useCustomVerificationTrustedCancellers,
+} from '#/state/verification/crack/custom-cancellers'
 import {useVerificationState} from '#/state/verification/custom-verification'
 import {
   useCustomVerificationEnabled,
@@ -31,6 +37,7 @@ import {EventStopper} from '#/view/com/util/EventStopper'
 import {atoms as a, useTheme} from '#/alf'
 import {Button, ButtonIcon} from '#/components/Button'
 import {ForceAlterEgoDialog} from '#/components/crack/ForceAlterEgoDialog'
+import {ManageTrustDialog} from '#/components/crack/ManageTrustDialog'
 import {useDialogControl} from '#/components/Dialog'
 import {StarterPackDialog} from '#/components/dialogs/StarterPackDialog'
 import {ArrowOutOfBoxModified_Stroke2_Corner2_Rounded as ArrowOutOfBoxIcon} from '#/components/icons/ArrowOutOfBox'
@@ -50,6 +57,7 @@ import {
   PersonX_Stroke2_Corner0_Rounded as PersonX,
 } from '#/components/icons/Person'
 import {PlusLarge_Stroke2_Corner0_Rounded as Plus} from '#/components/icons/Plus'
+import {SettingsSliderVertical_Stroke2_Corner0_Rounded as SettingsSliderIcon} from '#/components/icons/SettingsSlider'
 import {Sparkle_Stroke2_Corner0_Rounded as SparkleIcon} from '#/components/icons/Sparkle'
 import {SpeakerVolumeFull_Stroke2_Corner0_Rounded as Unmute} from '#/components/icons/Speaker'
 import {StarterPack} from '#/components/icons/StarterPack'
@@ -96,8 +104,21 @@ let ProfileMenu = ({
   const verification = useFullVerificationState({profile})
   const {state: verificationState} = useVerificationState(profile)
   const customVerificationEnabled = useCustomVerificationEnabled()
+  const trustedCancellersEnabled = useCustomVerificationCancellersEnabled()
   const {trustedSet, addTrusted, removeTrusted} =
     useCustomVerificationTrustedList()
+  const {
+    trustedSet: trustedCancellerSet,
+    addTrusted: addTrustedCanceller,
+    removeTrusted: removeTrustedCanceller,
+  } = useCustomVerificationTrustedCancellerList()
+  const effectiveTrustedCancellers = useCustomVerificationTrustedCancellers(
+    customVerificationEnabled && trustedCancellersEnabled
+      ? currentAccount?.did
+      : undefined,
+  )
+  const {addCancellation, removeCancellation, hasCancellation} =
+    useCustomVerificationCancellations()
   const alterEgoEnabled = Boolean(crackSettings.alterEgoEnabled)
   const {canGoLive} = useLiveNowConfig()
   const status = useActorStatus(profile)
@@ -122,6 +143,7 @@ let ProfileMenu = ({
   const goLiveDisabledDialogControl = useDialogControl()
   const addToStarterPacksDialogControl = useDialogControl()
   const forceAlterEgoDialogControl = useDialogControl()
+  const manageTrustDialogControl = useDialogControl()
 
   const showLoggedOutWarning = useMemo(() => {
     return (
@@ -263,6 +285,75 @@ let ProfileMenu = ({
       return v.issuer === currentAccount?.did
     }) ?? []
   const isTrustedVerifier = trustedSet.has(profile.did)
+  const isTrustedCanceller = trustedCancellerSet.has(profile.did)
+  const canCancelVerification = Boolean(
+    currentAccount?.did && effectiveTrustedCancellers.has(currentAccount.did),
+  )
+  const hasIssuedCancellation = Boolean(
+    currentAccount?.did &&
+      hasCancellation({
+        issuer: currentAccount.did,
+        subject: profile.did,
+      }),
+  )
+  const canToggleCancellation =
+    canCancelVerification &&
+    !isSelf &&
+    (hasIssuedCancellation || Boolean(verificationState?.verifications?.length))
+  const canManageTrust =
+    !isSelf && (customVerificationEnabled || trustedCancellersEnabled)
+  const onToggleTrustedVerifier = useCallback(() => {
+    if (isTrustedVerifier) {
+      removeTrusted(profile.did)
+      Toast.show(_(msg`Verifier untrusted`))
+    } else {
+      addTrusted(profile.did)
+      Toast.show(_(msg`Verifier trusted`))
+    }
+  }, [_, addTrusted, isTrustedVerifier, profile.did, removeTrusted])
+  const onToggleTrustedCanceller = useCallback(() => {
+    if (isTrustedCanceller) {
+      removeTrustedCanceller(profile.did)
+      Toast.show(_(msg`Canceller untrusted`))
+    } else {
+      addTrustedCanceller(profile.did)
+      Toast.show(_(msg`Canceller trusted`))
+    }
+  }, [
+    _,
+    addTrustedCanceller,
+    isTrustedCanceller,
+    profile.did,
+    removeTrustedCanceller,
+  ])
+  const onToggleCancellation = useCallback(() => {
+    if (!currentAccount?.did) return
+
+    void (async () => {
+      if (hasIssuedCancellation) {
+        await removeCancellation({
+          issuer: currentAccount.did,
+          subject: profile.did,
+        })
+        Toast.show(_(msg`Blue check restored`))
+      } else {
+        await addCancellation({
+          issuer: currentAccount.did,
+          subject: profile.did,
+          handle: profile.handle,
+          displayName: profile.displayName ?? '',
+        })
+        Toast.show(_(msg`Blue check cancelled`))
+      }
+    })()
+  }, [
+    _,
+    addCancellation,
+    currentAccount?.did,
+    hasIssuedCancellation,
+    profile.did,
+    removeCancellation,
+  ])
 
   return (
     <EventStopper onKeyDown={false}>
@@ -463,33 +554,15 @@ let ProfileMenu = ({
                       <Menu.ItemIcon icon={CircleCheckIcon} />
                     </Menu.Item>
                   ))}
-                {customVerificationEnabled && !isSelf && (
+                {canManageTrust && (
                   <Menu.Item
-                    testID="profileHeaderDropdownTrustVerifierButton"
-                    label={
-                      isTrustedVerifier
-                        ? _(msg`Untrust verifier`)
-                        : _(msg`Trust verifier`)
-                    }
-                    onPress={() => {
-                      if (isTrustedVerifier) {
-                        removeTrusted(profile.did)
-                        Toast.show(_(msg`Verifier untrusted`))
-                      } else {
-                        addTrusted(profile.did)
-                        Toast.show(_(msg`Verifier trusted`))
-                      }
-                    }}>
+                    testID="profileHeaderDropdownManageTrustButton"
+                    label={_(msg`Manage trust`)}
+                    onPress={() => manageTrustDialogControl.open()}>
                     <Menu.ItemText>
-                      {isTrustedVerifier ? (
-                        <Trans>Untrust verifier</Trans>
-                      ) : (
-                        <Trans>Trust verifier</Trans>
-                      )}
+                      <Trans>Manage trust</Trans>
                     </Menu.ItemText>
-                    <Menu.ItemIcon
-                      icon={isTrustedVerifier ? PersonX : PersonCheck}
-                    />
+                    <Menu.ItemIcon icon={SettingsSliderIcon} />
                   </Menu.Item>
                 )}
                 {!isSelf && (
@@ -645,6 +718,21 @@ let ProfileMenu = ({
         control={verificationRemovePromptControl}
         profile={profile}
         verifications={currentAccountVerifications}
+      />
+      <ManageTrustDialog
+        control={manageTrustDialogControl}
+        profile={profile}
+        canManageVerifiers={customVerificationEnabled}
+        canManageCancellers={trustedCancellersEnabled}
+        canToggleCancellation={
+          trustedCancellersEnabled && canToggleCancellation
+        }
+        isTrustedVerifier={isTrustedVerifier}
+        isTrustedCanceller={isTrustedCanceller}
+        hasIssuedCancellation={hasIssuedCancellation}
+        onToggleVerifier={onToggleTrustedVerifier}
+        onToggleCanceller={onToggleTrustedCanceller}
+        onToggleCancellation={onToggleCancellation}
       />
 
       {status.isDisabled ? (

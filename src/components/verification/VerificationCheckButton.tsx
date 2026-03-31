@@ -24,6 +24,8 @@ export function shouldShowVerificationCheckButton(
       ok = true
     } else if (state.profile.isViewer && state.profile.wasVerified) {
       ok = true
+    } else if (state.viewer.hasIssuedCancellation) {
+      ok = true
     } else if (
       state.viewer.role === 'verifier' &&
       state.viewer.hasIssuedVerification
@@ -41,6 +43,7 @@ export function shouldShowVerificationCheckButton(
   if (
     !state.profile.showBadge &&
     !state.profile.isViewer &&
+    !state.viewer.hasIssuedCancellation &&
     !(state.viewer.role === 'verifier' && state.viewer.hasIssuedVerification)
   ) {
     ok = false

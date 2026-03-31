@@ -18,6 +18,7 @@ export type CommonNavigatorParams = {
   CrackSettings: undefined
   CrackAlterEgoSettings: undefined
   CrackVerificationSettings: undefined
+  CrackTrustedCancellersSettings: undefined
   Profile: {name: string; hideBackButton?: boolean}
   ProfileFollowers: {name: string}
   ProfileFollows: {name: string}

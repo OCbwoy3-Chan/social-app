@@ -3,8 +3,12 @@ import {useQueryClient} from '@tanstack/react-query'
 
 import {logger} from '#/logger'
 import {updateProfileShadow} from '#/state/cache/profile-shadow'
-import {useAgent} from '#/state/session'
-import {useSession} from '#/state/session'
+import {useAgent, useSession} from '#/state/session'
+import {
+  useCustomVerificationCancellations,
+  useCustomVerificationCancellersEnabled,
+  useCustomVerificationTrustedCancellers,
+} from '#/state/verification/crack/custom-cancellers'
 import {fetchCustomVerificationState} from '#/state/verification/custom-verification'
 import {
   useCustomVerificationEnabled,
@@ -22,18 +26,24 @@ export function useUpdateProfileVerificationCache() {
   const agent = useAgent()
   const {currentAccount} = useSession()
   const customVerificationEnabled = useCustomVerificationEnabled()
+  const cancellersEnabled = useCustomVerificationCancellersEnabled()
   const trusted = useCustomVerificationTrusted(
     customVerificationEnabled ? currentAccount?.did : undefined,
   )
+  const trustedCancellers = useCustomVerificationTrustedCancellers(
+    cancellersEnabled ? currentAccount?.did : undefined,
+  )
+  useCustomVerificationCancellations()
 
   return useCallback(
     async ({profile}: {profile: bsky.profile.AnyProfileView}) => {
       try {
-        if (customVerificationEnabled) {
+        if (customVerificationEnabled || cancellersEnabled) {
           try {
             const verification = await fetchCustomVerificationState({
               profile,
               trusted,
+              trustedCancellers,
             })
             updateProfileShadow(qc, profile.did, {verification})
             return
@@ -56,6 +66,13 @@ export function useUpdateProfileVerificationCache() {
         })
       }
     },
-    [agent, qc, customVerificationEnabled, trusted],
+    [
+      agent,
+      qc,
+      customVerificationEnabled,
+      cancellersEnabled,
+      trusted,
+      trustedCancellers,
+    ],
   )
 }
